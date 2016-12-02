@@ -1,3 +1,7 @@
+# creates cfg files for crt-pi
+# example usage:
+# python crt-pi-configs.py mame2003 1080
+
 import sys
 import os
 import shutil
@@ -134,6 +138,9 @@ for gameInfo in myFile:
             newCfgFile.write("custom_viewport_height = \"{}\"\n".format(viewportHeight))
             newCfgFile.write("custom_viewport_x = \"{}\"\n".format(viewportX))
             newCfgFile.write("custom_viewport_y = \"{}\"\n".format(viewportY))
+
+    newCfgFile.close()
+
 myFile.close()
 
 # make zip of configs
