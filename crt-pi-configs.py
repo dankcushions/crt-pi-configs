@@ -1,6 +1,10 @@
 # creates cfg files for crt-pi
+# params are:
+# * core (eg mame2003)
+# * screen width (eg 1920)
+# * screen height (eg 1080)
 # example usage:
-# python crt-pi-configs.py mame2003 1080
+# python crt-pi-configs.py mame2003 1920 1080
 
 import sys
 import os
@@ -13,12 +17,8 @@ elif "fbalpha" in sys.argv[1]:
     fileName = "resolution_db/Resolution_db_lrFBA39(mame175).txt"
     coreName = "FB Alpha"
 
-if int(sys.argv[2]) == 1080:
-    screenWidth = 1920
-    screenHeight = 1080
-elif int(sys.argv[2]) == 720:
-    screenWidth = 1280
-    screenHeight = 720
+screenWidth = int(sys.argv[2])
+screenHeight = int(sys.argv[3])
 
 screenAspectRatio = screenWidth/screenHeight
 
