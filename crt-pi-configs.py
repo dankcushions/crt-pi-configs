@@ -1,6 +1,6 @@
 # creates cfg files for crt-pi
 # params are:
-# * core (eg mame2003)
+# * core (currently, mame2003 oe fbalpha)
 # * screen width (eg 1920)
 # * screen height (eg 1080)
 # example usage:
@@ -14,7 +14,7 @@ if "mame2003" in sys.argv[1]:
     fileName = "resolution_db/mame2003.txt"
     coreName = "MAME 2003"
 elif "fbalpha" in sys.argv[1]:
-    fileName = "resolution_db/Resolution_db_lrFBA39(mame175).txt"
+    fileName = "resolution_db/fbalpha.txt"
     coreName = "FB Alpha"
 
 screenWidth = int(sys.argv[2])
@@ -54,6 +54,7 @@ for gameInfo in myFile:
         newCfgFile.write("# Auto-generated vector .cfg\n")
         newCfgFile.write("# Place in /opt/retropie/configs/all/retroarch/config/{}/\n".format(coreName))
         newCfgFile.write("video_shader_enable = \"false\"\n")
+
     elif "V" in gameOrientation:
         # create vertical shader cfg file
         print('creating {}'.format(cfgFileName))
@@ -70,12 +71,12 @@ for gameInfo in myFile:
             # build list of potential aspect ratios with different integer scales
             aspectRatios = [];
             for scaleX in range(1, 10):
-                aspectRatios.append((scaleX * gameWidth) / screenHeight)
+                aspectRatios.append((scaleX * gameHeight) / screenHeight)
 
             # find closest integer scale to desired ratio
             scaleX = aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio))) + 1
 
-            viewportWidth = int(gameWidth * scaleX)
+            viewportWidth = int(gameHeight * scaleX)
             viewportHeight = screenHeight
             
             # centralise the image
