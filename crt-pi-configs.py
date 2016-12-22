@@ -1,6 +1,6 @@
 # creates cfg files for crt-pi
 # params are:
-# * core (currently, mame2003 oe fbalpha)
+# * core (currently, mame2003 or fbalpha)
 # * screen width (eg 1920)
 # * screen height (eg 1080)
 # example usage:
