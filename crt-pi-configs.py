@@ -26,10 +26,10 @@ screenAspectRatio = screenWidth/screenHeight
 if not os.path.exists(coreName):
     os.makedirs(coreName)
 
-myFile = open(fileName, "r" )
+resultionDbFile = open(fileName, "r" )
 print('opened file {}'.format(fileName))
 
-for gameInfo in myFile:
+for gameInfo in resultionDbFile:
 	# strip line breaks
     gameInfo = gameInfo.rstrip()
     
@@ -46,103 +46,76 @@ for gameInfo in myFile:
 
     cfgFileName = coreName + '/' + gameName + '.cfg'
 
+    # create cfg file
+    print('creating {}'.format(cfgFileName))
+    newCfgFile = open(cfgFileName, 'w')
+
     if "V" in gameType:
         # Vector games shouldn't use shaders, so clear it out
-        # create cfg file
-        print('creating {}'.format(cfgFileName))
-        newCfgFile = open(cfgFileName, 'w')
         newCfgFile.write("# Auto-generated vector .cfg\n")
         newCfgFile.write("# Place in /opt/retropie/configs/all/retroarch/config/{}/\n".format(coreName))
         newCfgFile.write("video_shader_enable = \"false\"\n")
 
-    elif "V" in gameOrientation:
-        # create vertical shader cfg file
-        print('creating {}'.format(cfgFileName))
-        newCfgFile = open(cfgFileName, 'w')
-        newCfgFile.write("# Auto-generated crt-pi-vertical.glslp .cfg\n")
-        newCfgFile.write("# Place in /opt/retropie/configs/all/retroarch/config/{}/\n".format(coreName))
-        newCfgFile.write("video_shader_enable = \"true\"\n")
-        newCfgFile.write("video_shader = \"/opt/retropie/configs/all/retroarch/shaders/crt-pi-vertical.glslp\"\n")
-        if screenHeight != integerHeight:
-            # if not perfectly integer scaled, we will get rainbow artefacts, so let's fix that
-            newCfgFile.write("# To avoid horizontal rainbow artefacts, use integer scaling for the width\n")
-            newCfgFile.write("aspect_ratio_index = \"22\"\n")
+    else:
+        if "V" in gameOrientation:
+            newCfgFile.write("# Auto-generated crt-pi-vertical.glslp .cfg\n")
+            newCfgFile.write("# Place in /opt/retropie/configs/all/retroarch/config/{}/\n".format(coreName))
+            newCfgFile.write("video_shader_enable = \"true\"\n")
+            newCfgFile.write("video_shader = \"/opt/retropie/configs/all/retroarch/shaders/crt-pi-vertical.glslp\"\n")
 
+        elif "H" in gameOrientation:
+            newCfgFile.write("# Auto-generated crt-pi.glslp .cfg\n")
+            newCfgFile.write("# Place in /opt/retropie/configs/all/retroarch/config/{}/\n".format(coreName))
+            newCfgFile.write("video_shader_enable = \"true\"\n")
+            newCfgFile.write("video_shader = \"/opt/retropie/configs/all/retroarch/shaders/crt-pi.glslp\"\n")
+
+        # if not perfectly integer scaled, we will get scaling artefacts, so let's fix that
+        aspectRatios = [];
+        if screenAspectRatio > aspectRatio:
+            # games with an aspect ratio smaller than your screen should be scaled to fit vertically
+            newCfgFile.write("# To avoid horizontal rainbow artefacts, use integer scaling for the width\n")
+            
             # build list of potential aspect ratios with different integer scales
-            aspectRatios = [];
             for scaleX in range(1, 10):
-                aspectRatios.append((scaleX * gameHeight) / screenHeight)
+                aspectRatios.append((scaleX * gameWidth) / screenHeight)
 
             # find closest integer scale to desired ratio
             scaleX = aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio))) + 1
 
-            viewportWidth = int(gameHeight * scaleX)
+            viewportWidth = int(gameWidth * scaleX)
             viewportHeight = screenHeight
             
             # centralise the image
             viewportX = int((screenWidth - viewportWidth) / 2)
             viewportY = 0
 
-            newCfgFile.write("custom_viewport_width = \"{}\"\n".format(viewportWidth))
-            newCfgFile.write("custom_viewport_height = \"{}\"\n".format(viewportHeight))
-            newCfgFile.write("custom_viewport_x = \"{}\"\n".format(viewportX))
-            newCfgFile.write("custom_viewport_y = \"{}\"\n".format(viewportY))
+        else:
+            # games with an aspect ratio larger than your screen should be scaled to fit horizontally
+            newCfgFile.write("# To avoid horizontal rainbow artefacts, use integer scaling for the height\n")
+            
+            # build list of potential aspect ratios with different integer scales
+            for scaleX in range(1, 15):
+                aspectRatios.append(screenWidth / (scaleX * gameHeight))
 
-    elif "H" in gameOrientation:
-        # create horizontal shader cfg file
-        print('creating {}'.format(cfgFileName))
-        newCfgFile = open(cfgFileName, 'w')
-        newCfgFile.write("# Auto-generated crt-pi.glslp .cfg\n")
-        newCfgFile.write("# Place in /opt/retropie/configs/all/retroarch/config/{}/\n".format(coreName))
-        newCfgFile.write("video_shader_enable = \"true\"\n")
-        newCfgFile.write("video_shader = \"/opt/retropie/configs/all/retroarch/shaders/crt-pi.glslp\"\n")
-        if screenHeight != integerHeight:
-            # if not perfectly integer scaled, we will get scaling artefacts, so let's fix that
-            newCfgFile.write("# To avoid horizontal rainbow artefacts, use integer scaling for the width\n")
-            newCfgFile.write("aspect_ratio_index = \"22\"\n")
+            # find closest integer scale to desired ratio
+            scaleY = aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio))) + 1
 
-            aspectRatios = [];
+            viewportWidth = screenWidth
+            viewportHeight = int(gameHeight * scaleY)
+            
+            # centralise the image
+            viewportX = 0
+            viewportY = int((screenHeight - viewportHeight) / 2)
 
-            if screenAspectRatio > aspectRatio:
-                # games with an aspect ratio smaller than your screen should be scaled to fit vertically
-                # build list of potential aspect ratios with different integer scales
-                for scaleX in range(1, 10):
-                    aspectRatios.append((scaleX * gameWidth) / screenHeight)
-
-                # find closest integer scale to desired ratio
-                scaleX = aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio))) + 1
-
-                viewportWidth = int(gameWidth * scaleX)
-                viewportHeight = screenHeight
-                
-                # centralise the image
-                viewportX = int((screenWidth - viewportWidth) / 2)
-                viewportY = 0
-
-            else:
-                # games with an aspect ratio larger than your screen should be scaled to fit horizontally
-                # build list of potential aspect ratios with different integer scales
-                for scaleX in range(1, 15):
-                    aspectRatios.append(screenWidth / (scaleX * gameHeight))
-
-                # find closest integer scale to desired ratio
-                scaleY = aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio))) + 1
-
-                viewportWidth = screenWidth
-                viewportHeight = int(gameHeight * scaleY)
-                
-                # centralise the image
-                viewportX = 0
-                viewportY = int((screenHeight - viewportHeight) / 2)
-
-            newCfgFile.write("custom_viewport_width = \"{}\"\n".format(viewportWidth))
-            newCfgFile.write("custom_viewport_height = \"{}\"\n".format(viewportHeight))
-            newCfgFile.write("custom_viewport_x = \"{}\"\n".format(viewportX))
-            newCfgFile.write("custom_viewport_y = \"{}\"\n".format(viewportY))
+        newCfgFile.write("aspect_ratio_index = \"22\"\n")
+        newCfgFile.write("custom_viewport_width = \"{}\"\n".format(viewportWidth))
+        newCfgFile.write("custom_viewport_height = \"{}\"\n".format(viewportHeight))
+        newCfgFile.write("custom_viewport_x = \"{}\"\n".format(viewportX))
+        newCfgFile.write("custom_viewport_y = \"{}\"\n".format(viewportY))
 
     newCfgFile.close()
 
-myFile.close()
+resultionDbFile.close()
 
 # make zip of configs
 outputFileName = "crt-pi_" + coreName + "_configs_" + str(screenWidth) + "x" + str(screenHeight)
