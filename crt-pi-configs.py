@@ -5,6 +5,11 @@
 # * screen height (eg 1080)
 # example usage:
 # python crt-pi-configs.py mame2003 1920 1080
+# python crt-pi-configs.py mame2003 1280 720
+# python crt-pi-configs.py mame2003 1280 1024
+# python crt-pi-configs.py fbalpha 1920 1080
+# python crt-pi-configs.py fbalpha 1280 720
+# python crt-pi-configs.py fbalpha 1280 1024
 
 import sys
 import os
@@ -62,6 +67,9 @@ for gameInfo in resultionDbFile:
             newCfgFile.write("# Place in /opt/retropie/configs/all/retroarch/config/{}/\n".format(coreName))
             newCfgFile.write("video_shader_enable = \"true\"\n")
             newCfgFile.write("video_shader = \"/opt/retropie/configs/all/retroarch/shaders/crt-pi-vertical.glslp\"\n")
+            # flip vertical games
+            gameWidth = int(gameInfo[2])
+            gameHeight = int(gameInfo[1])
 
         elif "H" in gameOrientation:
             newCfgFile.write("# Auto-generated crt-pi.glslp .cfg\n")
