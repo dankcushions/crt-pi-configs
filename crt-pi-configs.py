@@ -63,19 +63,19 @@ for gameInfo in resultionDbFile:
 
     else:
         if "V" in gameOrientation:
-            newCfgFile.write("# Auto-generated crt-pi-vertical.glslp .cfg\n")
-            newCfgFile.write("# Place in /opt/retropie/configs/all/retroarch/config/{}/\n".format(coreName))
-            newCfgFile.write("video_shader_enable = \"true\"\n")
-            newCfgFile.write("video_shader = \"/opt/retropie/configs/all/retroarch/shaders/crt-pi-vertical.glslp\"\n")
+            shader = "crt-pi-vertical.glslp"
+
             # flip vertical games
             gameWidth = int(gameInfo[2])
             gameHeight = int(gameInfo[1])
 
         elif "H" in gameOrientation:
-            newCfgFile.write("# Auto-generated crt-pi.glslp .cfg\n")
-            newCfgFile.write("# Place in /opt/retropie/configs/all/retroarch/config/{}/\n".format(coreName))
-            newCfgFile.write("video_shader_enable = \"true\"\n")
-            newCfgFile.write("video_shader = \"/opt/retropie/configs/all/retroarch/shaders/crt-pi.glslp\"\n")
+            shader = "crt-pi.glslp"
+
+        newCfgFile.write("# Auto-generated {} .cfg\n".format(shader))
+        newCfgFile.write("# Place in /opt/retropie/configs/all/retroarch/config/{}/\n".format(coreName))
+        newCfgFile.write("video_shader_enable = \"true\"\n")
+        newCfgFile.write("video_shader = \"/opt/retropie/configs/all/retroarch/shaders/{}\"\n".format(shader))
 
         # if not perfectly integer scaled, we will get scaling artefacts, so let's fix that
         aspectRatios = [];
