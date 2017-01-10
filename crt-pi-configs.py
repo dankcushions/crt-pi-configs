@@ -84,7 +84,7 @@ for gameInfo in resultionDbFile:
             newCfgFile.write("# To avoid horizontal rainbow artefacts, use integer scaling for the width\n")
             
             # build list of potential aspect ratios with different integer scales
-            for scaleX in range(1, 10):
+            for scaleX in range(1, 99):
                 aspectRatios.append((scaleX * gameWidth) / screenHeight)
 
             # find closest integer scale to desired ratio
@@ -102,7 +102,7 @@ for gameInfo in resultionDbFile:
             newCfgFile.write("# To avoid horizontal rainbow artefacts, use integer scaling for the height\n")
             
             # build list of potential aspect ratios with different integer scales
-            for scaleX in range(1, 15):
+            for scaleX in range(1, 99):
                 aspectRatios.append(screenWidth / (scaleX * gameHeight))
 
             # find closest integer scale to desired ratio
