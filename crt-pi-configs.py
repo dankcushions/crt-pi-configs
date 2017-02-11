@@ -1,22 +1,17 @@
 # creates cfg files for crt-pi
 # params are:
 # * core (currently, mame2003 or fbalpha)
-# * screen width (eg 1920)
+# * screen width (eg 1920) OR curvature
 # * screen height (eg 1080)
-# * curvature (optional)
 # example usage:
 # python crt-pi-configs.py mame2003 1920 1080
 # python crt-pi-configs.py mame2003 1280 720
 # python crt-pi-configs.py mame2003 1280 1024
-# python crt-pi-configs.py mame2003 1920 1080 curvature
-# python crt-pi-configs.py mame2003 1280 720 curvature
-# python crt-pi-configs.py mame2003 1280 1024 curvature
+# python crt-pi-configs.py mame2003 curvature
 # python crt-pi-configs.py fbalpha 1920 1080
 # python crt-pi-configs.py fbalpha 1280 720
 # python crt-pi-configs.py fbalpha 1280 1024
-# python crt-pi-configs.py fbalpha 1920 1080 curvature
-# python crt-pi-configs.py fbalpha 1280 720 curvature
-# python crt-pi-configs.py fbalpha 1280 1024 curvature
+# python crt-pi-configs.py fbalpha curvature
 
 import sys
 import os
@@ -29,18 +24,14 @@ elif "fbalpha" in sys.argv[1]:
     fileName = "resolution_db/fbalpha.txt"
     coreName = "FB Alpha"
 
-try:
-    curvature = "curvature" in sys.argv[4]
-except IndexError:
+if "curvature" in sys.argv[2]:
+    curvature = True
+else:
     curvature = False
-
-
-screenWidth = int(sys.argv[2])
-screenHeight = int(sys.argv[3])
-
-screenAspectRatio = screenWidth/screenHeight
-
-tolerance = 25
+    screenWidth = int(sys.argv[2])
+    screenHeight = int(sys.argv[3])
+    screenAspectRatio = screenWidth/screenHeight
+    tolerance = 25
 
 # Create directory for cfgs, if it doesn't already exist
 if not os.path.exists(coreName):
@@ -155,10 +146,9 @@ resultionDbFile.close()
 
 # make zip of configs
 if curvature:
-    outputFileName = "crt-pi-curvature_"
+    outputFileName = "crt-pi-curvature_" + coreName + "_configs"
 else:
-    outputFileName = "crt-pi_"
-outputFileName = outputFileName + coreName + "_configs_" + str(screenWidth) + "x" + str(screenHeight)
+    outputFileName = "crt-pi_" + coreName + "_configs_" + str(screenWidth) + "x" + str(screenHeight)
 outputFileName = outputFileName.replace(" ", "")
 outputFileName = outputFileName.lower()
 print('Creating zipfile {}.zip'.format(outputFileName))
