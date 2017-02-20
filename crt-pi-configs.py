@@ -14,17 +14,29 @@
 # python crt-pi-configs.py fbalpha 1280 720
 # python crt-pi-configs.py fbalpha 1280 1024
 # python crt-pi-configs.py fbalpha curvature
+# python crt-pi-configs.py consoles 1920 1080
+# python crt-pi-configs.py consoles 1366 768
+# python crt-pi-configs.py consoles 1280 720
+# python crt-pi-configs.py consoles 1280 1024
+# python crt-pi-configs.py consoles curvature
 
 import sys
 import os
 import shutil
 
+console = False
 if "mame2003" in sys.argv[1]:
     fileName = "resolution_db/mame2003.txt"
     coreName = "MAME 2003"
+    pathName = coreName
 elif "fbalpha" in sys.argv[1]:
     fileName = "resolution_db/fbalpha.txt"
     coreName = "FB Alpha"
+    pathName = coreName
+elif "consoles" in sys.argv[1]:
+    fileName = "resolution_db/consoles.txt"
+    pathName = "consoles"
+    console = True
 
 if "curvature" in sys.argv[2]:
     curvature = True
@@ -34,10 +46,6 @@ else:
     screenHeight = int(sys.argv[3])
     screenAspectRatio = screenWidth/screenHeight
     tolerance = 25
-
-# Create directory for cfgs, if it doesn't already exist
-if not os.path.exists(coreName):
-    os.makedirs(coreName)
 
 resultionDbFile = open(fileName, "r" )
 print('opened file {}'.format(fileName))
@@ -54,10 +62,17 @@ for gameInfo in resultionDbFile:
     gameHeight = int(gameInfo[2])
     aspectRatio = int(gameInfo[9]) / int(gameInfo[10])
     gameType = gameInfo[4]
-    integerWidth = int(gameInfo[7])
-    integerHeight = int(gameInfo[8])
+    #integerWidth = int(gameInfo[7])
+    #integerHeight = int(gameInfo[8])
 
-    cfgFileName = coreName + '/' + gameName + '.cfg'
+    if console:
+        coreName = gameName
+
+    cfgFileName = pathName + '/' + gameName + '.cfg'
+
+    # Create directory for cfgs, if it doesn't already exist
+    if not os.path.exists(pathName):
+        os.makedirs(pathName)
 
     # create cfg file
     print('creating {}'.format(cfgFileName))
@@ -92,12 +107,12 @@ for gameInfo in resultionDbFile:
 
         if not curvature:
             # if not perfectly integer scaled, we will get scaling artefacts, so let's fix that
-            aspectRatios = [];
             if screenAspectRatio > aspectRatio:
                 # games with an aspect ratio smaller than your screen should be scaled to fit vertically
                 newCfgFile.write("# To avoid horizontal rainbow artefacts, use integer scaling for the width\n")
 
                 # build list of potential aspect ratios with different integer scales
+                aspectRatios = []
                 for scaleX in range(1, 99):
                     aspectRatios.append((scaleX * gameWidth) / screenHeight)
 
@@ -105,7 +120,24 @@ for gameInfo in resultionDbFile:
                 scaleX = aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio))) + 1
 
                 viewportWidth = int(gameWidth * scaleX)
-                viewportHeight = screenHeight
+                if console:
+                    # consoles have overscan, so adjust viewportHeight to "Title Safe Area"
+                    if "Nestopia" in coreName:
+                        overscanV = 8
+                    else:
+                        overscanV = 0
+
+                    # build list of potential aspect ratios with different integer scales
+                    aspectRatios = []
+                    for scaleY in range(1, 99):
+                        aspectRatios.append(viewportWidth / (scaleY * gameHeight))
+
+                    # find closest integer scale to desired ratio
+                    scaleY = aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio))) + 1
+
+                    viewportHeight = screenHeight + (overscanV * scaleY)
+                else:
+                    viewportHeight = screenHeight
 
                 # we prefer it to be wider than narrower, so do that, according to tolerance
                 newAspect = viewportWidth / viewportHeight
@@ -116,13 +148,14 @@ for gameInfo in resultionDbFile:
 
                 # centralise the image
                 viewportX = int((screenWidth - viewportWidth) / 2)
-                viewportY = 0
+                viewportY = int((screenHeight - viewportHeight) / 2)
 
             else:
                 # games with an aspect ratio larger than your screen should be scaled to fit horizontally
                 newCfgFile.write("# To avoid horizontal rainbow artefacts, use integer scaling for the height\n")
                 
                 # build list of potential aspect ratios with different integer scales
+                aspectRatios = []
                 for scaleX in range(1, 99):
                     aspectRatios.append(screenWidth / (scaleX * gameHeight))
 
@@ -150,8 +183,8 @@ resultionDbFile.close()
 if curvature:
     outputFileName = "crt-pi-curvature_" + coreName + "_configs"
 else:
-    outputFileName = "crt-pi_" + coreName + "_configs_" + str(screenWidth) + "x" + str(screenHeight)
+    outputFileName = "crt-pi_" + pathName + "_configs_" + str(screenWidth) + "x" + str(screenHeight)
 outputFileName = outputFileName.replace(" ", "")
 outputFileName = outputFileName.lower()
 print('Creating zipfile {}.zip'.format(outputFileName))
-shutil.make_archive(outputFileName, 'zip', coreName)
+shutil.make_archive(outputFileName, 'zip', pathName)
