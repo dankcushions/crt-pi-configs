@@ -13,5 +13,4 @@ python crt-pi-configs.py consoles 1920 1080
 python crt-pi-configs.py consoles 1366 768
 python crt-pi-configs.py consoles 1280 720
 python crt-pi-configs.py consoles 1280 1024
-python crt-pi-configs.py consoles curvature
 pause
