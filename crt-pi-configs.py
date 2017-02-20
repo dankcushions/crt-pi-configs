@@ -18,7 +18,6 @@
 # python crt-pi-configs.py consoles 1366 768
 # python crt-pi-configs.py consoles 1280 720
 # python crt-pi-configs.py consoles 1280 1024
-# python crt-pi-configs.py consoles curvature
 
 import sys
 import os
@@ -117,7 +116,8 @@ for gameInfo in resultionDbFile:
                     aspectRatios.append((scaleX * gameWidth) / screenHeight)
 
                 # find closest integer scale to desired ratio
-                scaleX = aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio))) + 1
+                aspectRatios.reverse()
+                scaleX = 98-aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio)))
 
                 viewportWidth = int(gameWidth * scaleX)
                 if console:
@@ -133,7 +133,8 @@ for gameInfo in resultionDbFile:
                         aspectRatios.append(viewportWidth / (scaleY * gameHeight))
 
                     # find closest integer scale to desired ratio
-                    scaleY = aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio))) + 1
+                    aspectRatios.reverse()
+                    scaleY = 98-aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio)))
 
                     viewportHeight = screenHeight + (overscanV * scaleY)
                 else:
@@ -160,7 +161,8 @@ for gameInfo in resultionDbFile:
                     aspectRatios.append(screenWidth / (scaleX * gameHeight))
 
                 # find closest integer scale to desired ratio
-                scaleY = aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio))) + 1
+                aspectRatios.reverse()
+                scaleY = 98-aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio)))
 
                 viewportWidth = screenWidth
                 viewportHeight = int(gameHeight * scaleY)
@@ -181,7 +183,7 @@ resultionDbFile.close()
 
 # make zip of configs
 if curvature:
-    outputFileName = "crt-pi-curvature_" + coreName + "_configs"
+    outputFileName = "crt-pi-curvature_" + pathName + "_configs"
 else:
     outputFileName = "crt-pi_" + pathName + "_configs_" + str(screenWidth) + "x" + str(screenHeight)
 outputFileName = outputFileName.replace(" ", "")
