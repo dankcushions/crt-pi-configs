@@ -10,3 +10,5 @@ Clone into a directory, and then navigate to that directory in your command prom
 ```python crt-pi-configs.py mame2003 1920 1080```
 
 It will generate the cfgs and zip files containing the same in the root.
+
+Requires Python 3.5.2 or higher (or at least, it doens't work properly on 2.7)
