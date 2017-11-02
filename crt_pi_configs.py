@@ -198,4 +198,8 @@ def createZip(curvature=False, screenWidth=0, screenHeight=0):
 
 
 if __name__ == "__main__":
+    # check for Python 3. probably should just make code python 2 + 3 friendly, but...effort
+    if sys.version_info[0] < 3:
+    raise "Must be using Python 3"
+    
     generateConfigs(sys.argv[1], sys.argv[2], sys.argv[3])
