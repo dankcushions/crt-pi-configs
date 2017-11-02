@@ -99,8 +99,8 @@ def generateConfigs(arg1, arg2, arg3):
             newCfgFile.write("video_shader = \"/opt/retropie/configs/all/retroarch/shaders/{}\"\n".format(shader))
 
             if not curvature:
-                # if not perfectly integer scaled, we will get scaling artefacts, so let"s fix that
-                if screenAspectRatio > aspectRatio:
+                # if not perfectly integer scaled, we will get scaling artefacts, so let's fix that
+                if screenAspectRatio >= aspectRatio:
                     # games with an aspect ratio smaller than your screen should be scaled to fit vertically
                     newCfgFile.write("# To avoid horizontal rainbow artefacts, use integer scaling for the width\n")
 
@@ -114,6 +114,10 @@ def generateConfigs(arg1, arg2, arg3):
                     scaleX = 98-aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio)))
 
                     viewportWidth = int(gameWidth * scaleX)
+                    # careful not to exceed screen height
+                    if viewportWidth > screenWidth:
+                        viewportWidth = int(gameWidth * (scaleX - 1))
+
                     if console:
                         # consoles have overscan, so adjust viewportHeight to "Title Safe Area"
                         if "Nestopia" in coreName:
@@ -143,18 +147,14 @@ def generateConfigs(arg1, arg2, arg3):
                             if ((widerAspect - aspectRatio)/aspectRatio * 100) <= tolerance:
                                 viewportWidth = int(gameWidth * (scaleX + 1))
 
-                    # centralise the image
-                    viewportX = int((screenWidth - viewportWidth) / 2)
-                    viewportY = int((screenHeight - viewportHeight) / 2)
-
                 else:
                     # games with an aspect ratio larger than your screen should be scaled to fit horizontally
                     newCfgFile.write("# To avoid horizontal rainbow artefacts, use integer scaling for the height\n")
                     
                     # build list of potential aspect ratios with different integer scales
                     aspectRatios = []
-                    for scaleX in range(1, 99):
-                        aspectRatios.append(screenWidth / (scaleX * gameHeight))
+                    for scaleY in range(1, 99):
+                        aspectRatios.append(screenWidth / (scaleY * gameHeight))
 
                     # find closest integer scale to desired ratio
                     aspectRatios.reverse()
@@ -162,10 +162,14 @@ def generateConfigs(arg1, arg2, arg3):
 
                     viewportWidth = screenWidth
                     viewportHeight = int(gameHeight * scaleY)
+
+                    # careful not to exceed screen height
+                    if viewportHeight > screenHeight:
+                        viewportHeight = int(gameHeight * (scaleY - 1))
                     
-                    # centralise the image
-                    viewportX = 0
-                    viewportY = int((screenHeight - viewportHeight) / 2)
+                # centralise the image
+                viewportX = int((screenWidth - viewportWidth) / 2)
+                viewportY = int((screenHeight - viewportHeight) / 2)
 
                 newCfgFile.write("aspect_ratio_index = \"22\"\n")
                 newCfgFile.write("custom_viewport_width = \"{}\"\n".format(viewportWidth))
