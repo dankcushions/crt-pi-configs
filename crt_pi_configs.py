@@ -137,9 +137,11 @@ def generateConfigs(arg1, arg2, arg3):
                     # we prefer it to be wider than narrower, so do that, according to tolerance
                     newAspect = viewportWidth / viewportHeight
                     if newAspect < aspectRatio:
-                        widerAspect = (gameWidth * (scaleX + 1)) / screenHeight
-                        if ((widerAspect - aspectRatio)/aspectRatio * 100) <= tolerance:
-                            viewportWidth = int(gameWidth * (scaleX + 1))
+                        # careful not to exceed screen width
+                        if ((scaleX + 1) * gamewidth) =< screenWidth:
+                            widerAspect = (gameWidth * (scaleX + 1)) / screenHeight
+                            if ((widerAspect - aspectRatio)/aspectRatio * 100) <= tolerance:
+                                viewportWidth = int(gameWidth * (scaleX + 1))
 
                     # centralise the image
                     viewportX = int((screenWidth - viewportWidth) / 2)
