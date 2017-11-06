@@ -94,6 +94,9 @@ def generateConfigs(arg1, arg2, arg3):
                     shader = "crt-pi.glslp"
 
             newCfgFile.write("# Auto-generated {} .cfg\n".format(shader))
+            newCfgFile.write("# Game Title : {} , Width : {}, Height : {}, Aspect : {}:{}\n".format(gameName, gameWidth, gameHeight, int(gameInfo[9]), int(gameInfo[10])))
+            if not curvature:
+                newCfgFile.write("# Screen Width : {}, Screen Height : {}\n".format(screenWidth, screenHeight))
             newCfgFile.write("# Place in /opt/retropie/configs/all/retroarch/config/{}/\n".format(coreName))
             newCfgFile.write("video_shader_enable = \"true\"\n")
             newCfgFile.write("video_shader = \"/opt/retropie/configs/all/retroarch/shaders/{}\"\n".format(shader))
