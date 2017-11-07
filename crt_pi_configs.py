@@ -37,9 +37,14 @@ def generateConfigs(arg1, arg2, arg3):
         resolution = str(screenWidth) + "x" + str(screenHeight)
 
     resolutionDbFile = open(fileName, "r" )
-    print("opened file {}".format(fileName))
+    print("Opened database file {}\n".format(fileName))
+    print("Creating system-specific config files.\n")
+    sys.stdout.write('[')
+    sys.stdout.flush()
+    gameCount = 0
 
     for gameInfo in resolutionDbFile:
+        gameCount = gameCount+1
     	# strip line breaks
         gameInfo = gameInfo.rstrip()
         
@@ -68,7 +73,9 @@ def generateConfigs(arg1, arg2, arg3):
             os.makedirs (path)
 
         # create cfg file
-        print("creating {}/{}".format(path,cfgFileName))
+        if (gameCount%100 == 0):
+            sys.stdout.write('.')
+            sys.stdout.flush()
         newCfgFile = open(path + "/" + cfgFileName, "w")
 
         if "V" in gameType:
@@ -183,6 +190,9 @@ def generateConfigs(arg1, arg2, arg3):
         newCfgFile.close()
 
     resolutionDbFile.close()
+    print("]\n")
+    print("Done!\n")
+    print("Files written to ./{}/\nPlease transfer to /opt/retropie/configs/all/retroarch/config/{}/\n".format(path, coreName))
 
 
 def createZip(curvature=False, screenWidth=0, screenHeight=0):
