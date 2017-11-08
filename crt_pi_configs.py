@@ -35,9 +35,14 @@ def generateConfigs(arg1, arg2, arg3):
         screenAspectRatio = screenWidth / screenHeight
         tolerance = 25
         resolution = str(screenWidth) + "x" + str(screenHeight)
+        outputLogFile = open(coreName + "-" + resolution + ".csv", "w")
+        outputLogFile.write("Tolerance : ,{}\n".format(tolerance))
+        outputLogFile.write("ROM Name,X,Y,Orientation,Aspect1,Aspect2,ViewportWidth,ViewportHeight,HorizontalOffset,VerticalOffset\n")
 
     resolutionDbFile = open(fileName, "r" )
-    print("Opened database file {}\n".format(fileName))
+    print("Opened database file {}".format(fileName))
+    if not curvature:
+        print("created log file ./{}".format(outputLogFile.name))
     print("Creating system-specific config files.\n")
     sys.stdout.write('[')
     sys.stdout.flush()
@@ -186,13 +191,18 @@ def generateConfigs(arg1, arg2, arg3):
                 newCfgFile.write("custom_viewport_height = \"{}\"\n".format(viewportHeight))
                 newCfgFile.write("custom_viewport_x = \"{}\"\n".format(viewportX))
                 newCfgFile.write("custom_viewport_y = \"{}\"\n".format(viewportY))
+                
+                outputLogFile.write("{},{},{},{},{},{},{},{},{},{}\n".format(gameInfo[0],gameInfo[1],gameInfo[2],gameInfo[3],gameInfo[9],gameInfo[10],viewportWidth,viewportHeight,viewportX,viewportY))
 
         newCfgFile.close()
 
     resolutionDbFile.close()
     print("]\n")
     print("Done!\n")
-    print("Files written to ./{}/\nPlease transfer to /opt/retropie/configs/all/retroarch/config/{}/\n".format(path, coreName))
+    if not curvature:
+        outputLogFile.close()
+        print("Log written to ./{}  <--Delete if not needed".format(outputLogFile.name))
+    print("Files written to ./{}/\nPlease transfer files to /opt/retropie/configs/all/retroarch/config/{}/\n".format(path, coreName))
 
 
 def createZip(curvature=False, screenWidth=0, screenHeight=0):
