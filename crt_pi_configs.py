@@ -24,6 +24,8 @@ def generateConfigs(arg1, arg2, arg3):
         coreName = "FB Alpha"
     elif "consoles" in arg1:
         fileName = "resolution_db/consoles.txt"
+        # Initialise coreName for consoles to allow log file creation
+        coreName = "Consoles"
         console = True
 
     if "curvature" in arg2:
@@ -32,7 +34,7 @@ def generateConfigs(arg1, arg2, arg3):
         curvature = False
         screenWidth = int(arg2)
         screenHeight = int(arg3)
-        screenAspectRatio = screenWidth / screenHeight
+        # Tolerance for "scale to fit" in either axis - the unit is the percentage of the game size in that direction.  Default is 25 (i.e. 25%)
         tolerance = 25
         resolution = str(screenWidth) + "x" + str(screenHeight)
         outputLogFile = open(coreName + "-" + resolution + ".csv", "w")
@@ -98,12 +100,18 @@ def generateConfigs(arg1, arg2, arg3):
                 # flip vertical games
                 gameWidth = int(gameInfo[2])
                 gameHeight = int(gameInfo[1])
+                # Calculate pixel 'squareness' and adjust gameHeight figure to keep the same aspect ratio, but with square pixels (keeping Width as-was to avoid scaling artifacts)
+                pixelSquareness = ((gameWidth/gameHeight)/aspectRatio)
+                gameHeight = int(gameHeight * pixelSquareness)
 
             elif "H" in gameOrientation:
                 if curvature:
                     shader = "crt-pi-curvature.glslp"
                 else:
                     shader = "crt-pi.glslp"
+                # Calculate pixel 'squareness' and adjust gameWidth figure to keep the same aspect ratio, but with square pixels (keeping Height as-was)
+                pixelSquareness = ((gameWidth/gameHeight)/aspectRatio)
+                gameWidth = int(gameWidth / pixelSquareness)
 
             newCfgFile.write("# Auto-generated {} .cfg\n".format(shader))
             newCfgFile.write("# Game Title : {} , Width : {}, Height : {}, Aspect : {}:{}\n".format(gameName, gameWidth, gameHeight, int(gameInfo[9]), int(gameInfo[10])))
@@ -114,73 +122,40 @@ def generateConfigs(arg1, arg2, arg3):
             newCfgFile.write("video_shader = \"/opt/retropie/configs/all/retroarch/shaders/{}\"\n".format(shader))
 
             if not curvature:
-                # if not perfectly integer scaled, we will get scaling artefacts, so let's fix that
-                if screenAspectRatio >= aspectRatio:
-                    # games with an aspect ratio smaller than your screen should be scaled to fit vertically
+                # Check scale factor in horizontal and vertical directions
+                vScaling = screenHeight/gameHeight
+                hScaling = screenWidth/gameWidth
+            	
+                # Keep whichever scaling factor is smaller. 
+                if vScaling < hScaling:
+                    scaleFactor = vScaling
+                else:
+                    scaleFactor = hScaling
+
+                # For vertical format games, width multiplies by an integer scale factor, height can multiply by the actual scale factor.
+                if "V" in gameOrientation:
+                    # Pick whichever integer scale factor is nearest to the actual scale factor for the width without going outside the screen area
+                    if (scaleFactor - int(scaleFactor) > 0.5 and gameWidth * int(scaleFactor + 1) < screenWidth):
+                        viewportWidth = gameWidth * int(scaleFactor + 1)
+                    else:
+                        viewportWidth = gameWidth * int(scaleFactor)
+                    viewportHeight = int(gameHeight * scaleFactor)
+                    # If, somehow, the viewport height is less than the screen height, but it's within tolerance of the game height, scale to fill the screen vertically 
+                    if screenHeight - viewportHeight < (gameHeight * (tolerance / 100)):
+                        viewportHeight = screenHeight
                     newCfgFile.write("# To avoid horizontal rainbow artefacts, use integer scaling for the width\n")
 
-                    # build list of potential aspect ratios with different integer scales
-                    aspectRatios = []
-                    for scaleX in range(1, 99):
-                        aspectRatios.append((scaleX * gameWidth) / screenHeight)
-
-                    # find closest integer scale to desired ratio
-                    aspectRatios.reverse()
-                    scaleX = 98-aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio)))
-
-                    viewportWidth = int(gameWidth * scaleX)
-                    # careful not to exceed screen height
-                    if viewportWidth > screenWidth:
-                        viewportWidth = int(gameWidth * (scaleX - 1))
-
-                    if console:
-                        # consoles have overscan, so adjust viewportHeight to "Title Safe Area"
-                        if "Nestopia" in coreName:
-                            overscanV = 8
-                        else:
-                            overscanV = 0
-
-                        # build list of potential aspect ratios with different integer scales
-                        aspectRatios = []
-                        for scaleY in range(1, 99):
-                            aspectRatios.append(viewportWidth / (scaleY * gameHeight))
-
-                        # find closest integer scale to desired ratio
-                        aspectRatios.reverse()
-                        scaleY = 98-aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio)))
-
-                        viewportHeight = screenHeight + (overscanV * scaleY)
-                    else:
-                        viewportHeight = screenHeight
-
-                    # we prefer it to be wider than narrower, so do that, according to tolerance
-                    newAspect = viewportWidth / viewportHeight
-                    if newAspect < aspectRatio:
-                        # careful not to exceed screen width
-                        if ((scaleX + 1) * gameWidth) <= screenWidth:
-                            widerAspect = (gameWidth * (scaleX + 1)) / screenHeight
-                            if ((widerAspect - aspectRatio)/aspectRatio * 100) <= tolerance:
-                                viewportWidth = int(gameWidth * (scaleX + 1))
-
+                # For horizontal games, scale both axes by the scaling factor.  If the resulting viewport size is within our tolerance for the game height or width, expand it to fill in that direction
                 else:
-                    # games with an aspect ratio larger than your screen should be scaled to fit horizontally
-                    newCfgFile.write("# To avoid horizontal rainbow artefacts, use integer scaling for the height\n")
-                    
-                    # build list of potential aspect ratios with different integer scales
-                    aspectRatios = []
-                    for scaleY in range(1, 99):
-                        aspectRatios.append(screenWidth / (scaleY * gameHeight))
-
-                    # find closest integer scale to desired ratio
-                    aspectRatios.reverse()
-                    scaleY = 98-aspectRatios.index(min(aspectRatios, key=lambda x:abs(x-aspectRatio)))
-
-                    viewportWidth = screenWidth
-                    viewportHeight = int(gameHeight * scaleY)
-
-                    # careful not to exceed screen height
-                    if viewportHeight > screenHeight:
-                        viewportHeight = int(gameHeight * (scaleY - 1))
+                    viewportWidth = int(gameWidth * scaleFactor)
+                    if screenWidth - viewportWidth < (gameWidth * (tolerance / 100)):
+                        viewportWidth = screenWidth
+                    viewportHeight = int(gameHeight * scaleFactor)
+                    if screenHeight - viewportHeight < (gameHeight * (tolerance / 100)):
+                        viewportHeight = screenHeight
+                    # Add 'overscan' area for Nestopia consoles, as per original script (more or less)
+                    if ("console" and "Nestopia" in coreName):
+                        viewportHeight = viewportHeight + 8 * int(scaleFactor)
                     
                 # centralise the image
                 viewportX = int((screenWidth - viewportWidth) / 2)
