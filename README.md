@@ -12,4 +12,4 @@ Clone into a directory, and then navigate to that directory in your command prom
 
 It will generate the cfgs and zip files containing the same in the root.
 
-Requires Python 3.5.2 or higher (or at least, it doesn't work properly on 2.7)
+Compatible with Python 2.7 (retropie default) and upwards.
