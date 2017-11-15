@@ -15,26 +15,22 @@ import os
 import shutil
 
 
-def generateConfigs(arg1, arg2, arg3):
+def generateConfigs(core, curvature=False, screenWidth=0, screenHeight=0):
     console = False
-    if "mame2003" in arg1:
+    if "mame2003" in core:
         fileName = "resolution_db/mame2003.txt"
         coreName = "MAME 2003"
-    elif "fbalpha" in arg1:
+    elif "fbalpha" in core:
         fileName = "resolution_db/fbalpha.txt"
         coreName = "FB Alpha"
-    elif "consoles" in arg1:
+    elif "consoles" in core:
         fileName = "resolution_db/consoles.txt"
         # Initialise coreName for consoles to allow log file creation
         coreName = "Consoles"
         console = True
 
-    if "curvature" in arg2:
-        curvature = True
-    else:
+    if not curvature:
         curvature = False
-        screenWidth = int(arg2)
-        screenHeight = int(arg3)
         # Tolerance for "scale to fit" in either axis - the unit is the percentage of the game size in that direction.  Default is 25 (i.e. 25%)
         tolerance = 25
         resolution = str(screenWidth) + "x" + str(screenHeight)
@@ -206,4 +202,7 @@ def createZip(curvature=False, screenWidth=0, screenHeight=0):
 
 
 if __name__ == "__main__":
-    generateConfigs(sys.argv[1], sys.argv[2], sys.argv[3])
+    if "curvature" in sys.argv[2]:
+        generateConfigs(sys.argv[1], True)
+    else:
+        generateConfigs(sys.argv[1], False, int(sys.argv[2]), int(sys.argv[3]))
