@@ -40,7 +40,7 @@ def generateConfigs(arg1, arg2, arg3):
         resolution = str(screenWidth) + "x" + str(screenHeight)
         outputLogFile = open(coreName + "-" + resolution + ".csv", "w")
         outputLogFile.write("Tolerance : ,{}\n".format(tolerance))
-        outputLogFile.write("ROM Name,X,Y,Orientation,Aspect1,Aspect2,ViewportWidth,ViewportHeight,HorizontalOffset,VerticalOffset\n")
+        outputLogFile.write("ROM Name,X,Y,Orientation,Aspect1,Aspect2,ViewportWidth,ViewportHeight,HorizontalOffset,VerticalOffset,ScaleFactor\n")
 
     resolutionDbFile = open(fileName, "r" )
     print("Opened database file {}".format(fileName))
@@ -114,14 +114,6 @@ def generateConfigs(arg1, arg2, arg3):
                 pixelSquareness = ((gameWidth/gameHeight)/aspectRatio)
                 gameWidth = int(gameWidth / pixelSquareness)
 
-            newCfgFile.write("# Auto-generated {} .cfg\n".format(shader))
-            newCfgFile.write("# Game Title : {} , Width : {}, Height : {}, Aspect : {}:{}\n".format(gameName, gameWidth, gameHeight, int(gameInfo[9]), int(gameInfo[10])))
-            if not curvature:
-                newCfgFile.write("# Screen Width : {}, Screen Height : {}\n".format(screenWidth, screenHeight))
-            newCfgFile.write("# Place in /opt/retropie/configs/all/retroarch/config/{}/\n".format(coreName))
-            newCfgFile.write("video_shader_enable = \"true\"\n")
-            newCfgFile.write("video_shader = \"/opt/retropie/configs/all/retroarch/shaders/{}\"\n".format(shader))
-
             if not curvature:
                 # Check scale factor in horizontal and vertical directions
                 vScaling = screenHeight/gameHeight
@@ -144,7 +136,6 @@ def generateConfigs(arg1, arg2, arg3):
                     # If, somehow, the viewport height is less than the screen height, but it's within tolerance of the game height, scale to fill the screen vertically 
                     if screenHeight - viewportHeight < (gameHeight * (tolerance / 100)):
                         viewportHeight = screenHeight
-                    newCfgFile.write("# To avoid horizontal rainbow artefacts, use integer scaling for the width\n")
 
                 # For horizontal games, scale both axes by the scaling factor.  If the resulting viewport size is within our tolerance for the game height or width, expand it to fill in that direction
                 else:
@@ -161,14 +152,28 @@ def generateConfigs(arg1, arg2, arg3):
                 # centralise the image
                 viewportX = int((screenWidth - viewportWidth) / 2)
                 viewportY = int((screenHeight - viewportHeight) / 2)
-
-                newCfgFile.write("aspect_ratio_index = \"22\"\n")
-                newCfgFile.write("custom_viewport_width = \"{}\"\n".format(viewportWidth))
-                newCfgFile.write("custom_viewport_height = \"{}\"\n".format(viewportHeight))
-                newCfgFile.write("custom_viewport_x = \"{}\"\n".format(viewportX))
-                newCfgFile.write("custom_viewport_y = \"{}\"\n".format(viewportY))
                 
-                outputLogFile.write("{},{},{},{},{},{},{},{},{},{}\n".format(gameInfo[0],gameInfo[1],gameInfo[2],gameInfo[3],gameInfo[9],gameInfo[10],viewportWidth,viewportHeight,viewportX,viewportY))
+                #Write the output file
+                newCfgFile.write("# Auto-generated {} .cfg\n".format(shader))
+                newCfgFile.write("# Game Title : {} , Width : {}, Height : {}, Aspect : {}:{}, Scale Factor : {}\n".format(gameName, gameWidth, gameHeight, int(gameInfo[9]), int(gameInfo[10]),scaleFactor))
+                if not curvature:
+                    newCfgFile.write("# Screen Width : {}, Screen Height : {}\n".format(screenWidth, screenHeight))
+                newCfgFile.write("# Place in /opt/retropie/configs/all/retroarch/config/{}/\n".format(coreName))
+
+                # Disable shader if the scale is too small
+                if scaleFactor >= 3:
+                    newCfgFile.write("video_shader_enable = \"true\"\n")
+                    newCfgFile.write("video_shader = \"/opt/retropie/configs/all/retroarch/shaders/{}\"\n".format(shader))
+                    newCfgFile.write("aspect_ratio_index = \"22\"\n")
+                    newCfgFile.write("custom_viewport_width = \"{}\"\n".format(viewportWidth))
+                    newCfgFile.write("custom_viewport_height = \"{}\"\n".format(viewportHeight))
+                    newCfgFile.write("custom_viewport_x = \"{}\"\n".format(viewportX))
+                    newCfgFile.write("custom_viewport_y = \"{}\"\n".format(viewportY))
+                else:
+                    newCfgFile.write("# Insufficient resolution for good quality shader\n")
+                    newCfgFile.write("video_shader_enable = \"false\"\n")
+                
+                outputLogFile.write("{},{},{},{},{},{},{},{},{},{},{}\n".format(gameInfo[0],gameInfo[1],gameInfo[2],gameInfo[3],gameInfo[9],gameInfo[10],viewportWidth,viewportHeight,viewportX,viewportY,scaleFactor))
 
         newCfgFile.close()
 
